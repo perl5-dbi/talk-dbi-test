@@ -122,6 +122,29 @@ a:focus {
 }
 
 /*
+ Styles from Vim's 2html.vim
+ */
+
+.code {
+    display: block;
+    font-family: monospace; color: #c0c0c0; background-color: #000040;
+    font-size: 35px;
+    line-height: 52px;
+}
+.Type { color: #60ff60; }
+.Statement { color: #ffff60; }
+.LineNr { color: #90f020; }
+.Comment { color: #80a0ff; }
+.Constant { color: #ffa0a0; }
+.Special { color: #ffa500; }
+.Identifier { color: #40ffff; }
+
+.explain {
+    display: block;
+    width: 390px;
+}
+
+/*
     Because the main point behind the impress.js demo is to demo impress.js
     we display a fallback message for users with browsers that don't support
     all the features required by it.

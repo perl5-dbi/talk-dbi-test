@@ -196,6 +196,126 @@
       <q>continuous cooperation will be improved by relying on the same test cases</q>
     </div>
 
+    <div class="step" data-x="6000" data-y="1900" data-rotate="180" data-rotate-y="0">
+      <q>What's to do by any DBD maintainer or author to benefit from <strong>DBI::Test</strong></q>
+    </div>
+
+    <div class="step" data-x="5000" data-y="1900" data-rotate="180" data-rotate-y="-20">
+      <ol><li>Create and populate the tests for your DBD</ol>
+      <q class="code">
+<span class="Statement">use lib</span> <span class="Constant">'</span><span class="Constant">lib</span><span class="Constant">'</span>; <span class="Comment"># for use DBI::DBD</span><br />
+<span class="Statement">use </span>DBI::Test::Conf ();<br />
+<span class="Statement">my</span> <span class="Identifier">@gen_tests</span> = DBI::Test::Conf-&gt;setup(<br />
+ &nbsp; &nbsp;<span class="Constant">AUTHOR_TESTS</span> =&gt; <span class="Constant">0</span>,<br />
+ &nbsp; &nbsp;<span class="Constant">SKIP_FILE</span> =&gt; <span class="Constant">&quot;</span><span class="Constant">DBI-TEST.SKIP</span><span class="Constant">&quot;</span>,<br />
+ &nbsp; &nbsp;<span class="Constant">CONTAINED_DBDS</span> =&gt; [<span class="Constant">qw'</span><span class="Constant">DBM File</span><span class="Constant">'</span>]);</q><br />
+    </div>
+
+    <div class="step" data-x="4000" data-y="1900" data-rotate="180" data-rotate-y="-40">
+      <ul>
+        <li><strong>AUTHOR_TESTS</strong> tell wether to generate the tests in <span class="Constant">t/</span> or <span class="Constant">xt/</span>
+	<li><strong>SKIP_FILE</strong> tells DBI::Test::Conf to generate a file you can include in your <code>MANIFEST.SKIP</code>
+	<li><strong>CONTAINED_DBDS</strong> tells DBI::Test::Conf which DBD's are introduces and thus what generic tests shall be populated
+      </ul>
+    </div>
+
+    <div class="step" data-x="3000" data-y="1900" data-rotate="180" data-rotate-y="-60">
+      <ol start="2"><li>embed tests in <code>Makefile.PL</code> / <code>Build.PL</code></ol>
+      <q class="code">WriteMakeFile( ...<br />
+ &nbsp; &nbsp; <span class="Constant">test</span> =&gt; { <span class="Constant">TESTS</span> =&gt; <span class="Statement">join</span>(<span class="Constant">'</span><span class="Constant"> </span><span class="Constant">'</span> =&gt;<br />
+ &nbsp; &nbsp; &nbsp; &nbsp;<span class="Constant">'t/*.t xt/*.t'</span>, <span class="Comment"># non-populated</span><br />
+ &nbsp; &nbsp; &nbsp; &nbsp;<span class="Identifier">@gen_tests</span>), }, <span class="Comment"># populated</span><br />
+ &nbsp; &nbsp;<span class="Constant">clean</span> =&gt; { <span class="Constant">FILES</span> =&gt; <span class="Statement">join</span>(<span class="Constant">'</span><span class="Constant"> </span><span class="Constant">'</span> =&gt;<br />
+ &nbsp; &nbsp; &nbsp; &nbsp;<span class="Identifier">@gen_tests</span> ),
+ &nbsp;});</q>
+    </div>
+
+    <div class="step" data-x="2000" data-y="1900" data-rotate="180" data-rotate-y="0">
+      <q>From there on, all <strong>DBI::Test</strong> and <strong>DBI::Test</strong>'s plugins (as <strong>DBI</strong> and <strong>SQL::Statement</strong> provided tests are populated and will be run on <code>make test</code></q>
+    </div>
+
+    <div class="step" data-x="1000" data-y="1900" data-rotate="180" data-rotate-y="-20">
+      <ol start="3"><li>prepare you're database access</ol>
+      <ul>
+        <li>Write a <i>dbi-test.json</i> (with <strong>File::ConfigDir</strong> the name is more flexible)
+	<li>Write a DSN Provider like <strong>DBI::Test::<i>ns::</i>DSN::Provider::<i>DBD</i></strong>
+	<li>Set appropriate environment variables
+      </ul>
+    </div>
+
+    <div class="step" data-x="0" data-y="1900" data-rotate="180" data-rotate-y="-40">
+      <q>Create a <i>dbi-test.json</i></q>
+      <q class="code">
+<span class="Identifier">{</span>
+<span class="Constant">&quot;DBI::Test::basic::connect&quot;</span>:<br />
+ &nbsp; &nbsp; <span class="Identifier">[</span><span class="Constant">&quot;dbi::CSV:&quot;</span>,<span class="Statement">null</span>,<span class="Statement">null</span>,<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; <span class="Identifier">{</span><span class="Constant">&quot;csv_class&quot;</span>:<span class="Constant">&quot;Text::CSV_XS&quot;</span><span class="Identifier">}]</span>,
+ &nbsp; <span class="Constant">&quot;DBI::Test::basic::disconnect&quot;</span>:<br />
+ &nbsp; &nbsp; <span class="Identifier">[</span><span class="Constant">&quot;dbi::CSV:&quot;</span>,<span class="Statement">null</span>,<span class="Statement">null</span>,<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; <span class="Identifier">{</span><span class="Constant">&quot;csv_class&quot;</span>:<span class="Constant">&quot;Text::CSV_XS&quot;</span><span class="Identifier">}]</span><br />
+<span class="Identifier">}</span></q>
+    </div>
+
+    <div class="step" data-x="-1000" data-y="1900" data-rotate="180" data-rotate-y="-60">
+      <q>Create a DSN Provider</q>
+      <q class="code">
+<span class="Statement">package</span><span class="Type"> D::T::DBI::DSN::Provider::DBM</span>;<br />
+
+<span class="Statement">use base</span> <span class="Constant">&quot;D::T::DSN::Provider::Dir&quot;</span>;<br />
+<span class="Comment"># deliver DSN's generic configuration<br /># for test population</span><br>
+<span class="Statement">sub </span><span class="Identifier">dsn_conf</span> { ... }<br />
+<span class="Comment"># deliver DSN for using in run_test</span><br>
+<span class="Statement">sub </span><span class="Identifier">get_dsn_creds</span> { ... }<br />
+      </q>
+    </div>
+
+    <div class="step" data-x="-2000" data-y="1900" data-rotate="180" data-rotate-y="-80">
+      <ol start="4"><li>add your own test case</li>
+      <q class="code">
+<span class="Statement">package</span><span class="Type"> D::T::C::SQL::Statement::error</span>;<br />
+
+<span class="Statement">use parent</span> <span class="Constant">qw(D::T::SQL::Statement::C)</span>;<br />
+
+<span class="Statement">use </span>Data::Dumper;<br />
+
+<span class="Statement">use </span>Test::More;<br />
+<span class="Statement">use </span>DBI::Test;<br />
+
+<span class="Comment"># return true when $cfgs are supported</span><br>
+<span class="Statement">sub </span><span class="Identifier">supported_variant</span> {<br />
+&nbsp; &nbsp; <span class="Statement">my</span> (<span class="Identifier">$me</span>, <span class="Identifier">$tc</span>, <span class="Identifier">$cfg_pfx</span>, <span class="Identifier">$cfgs</span>,<br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="Identifier">$dsn_pfx</span>, <span class="Identifier">$dsn</span>, <span class="Identifier">$options</span>) = <span class="Identifier">@_</span>;<br />
+&nbsp; &nbsp; ... }<br />
+<span class="Comment"># deliver DSN for using in run_test</span><br>
+<span class="Statement">sub </span><span class="Identifier">run_test</span> {<br />
+&nbsp; &nbsp; <span class="Statement">my</span> <span class="Identifier">@DB_CREDS</span> = <span class="Identifier">@{$_[</span><span class="Constant">1</span><span class="Identifier">]}</span>;<br />
+&nbsp; &nbsp; ... }<br />
+      </q>
+    </div>
+
+    <div class="step" data-x="-3000" data-y="1900" data-rotate="180" data-rotate-y="-100">
+      <ol start="5"><li>Introduce your test case to <strong>DBI::Test</strong></li>
+      <q class="code">
+<span class="Statement">package</span><span class="Type"> D::T::SQL::Statement::List</span>;<br />
+
+<span class="Statement">use strict</span>;<br />
+<span class="Statement">use warnings</span>;<br />
+
+<span class="Statement">use parent</span> <span class="Constant">qw(</span><span class="Constant">DBI::Test::List</span><span class="Constant">)</span>;<br />
+
+<span class="Statement">sub </span><span class="Identifier">test_cases</span><br />
+{<br />
+&nbsp; &nbsp; <span class="Statement">my</span> <span class="Identifier">$bas</span> = <span class="Constant">&quot;SQL::Statement::&quot;</span>;<br />
+&nbsp; &nbsp; <span class="Statement">map {</span> <span class="Identifier">$bas</span> . <span class="Identifier">$_</span> <span class="Statement">}</span> <span class="Constant">qw(error)</span>;<br />
+}<br />
+      </q>
+    </div>
+
+    <div id="source" class="step" data-x="3500" data-y="900">
+        <p>want to know more?</p>
+        <q><a href="https://github.com/perl5-dbi/DBI-Test">use the source</a>, Luke!</q>
+    </div>
+
     <!--
         
         So to make a summary of all the possible attributes used to position presentation steps, we have:
@@ -211,7 +331,12 @@
         CSS transfrom docs: https://developer.mozilla.org/en/CSS/transform
         
     -->
-    <div id="overview" class="step" data-x="3000" data-y="1500" data-scale="10">
+    <div id="overview" class="step" data-x="2500" data-y="1500" data-scale="10">
+    </div>
+
+    <div class="step" data-x="3500" data-y="-100">
+      <q>This presentation has been created by Jens Rehsack with <a href="http://github.com/bartaz/impress.js">impress.js</a> and <a href="http://www.vim.org/">VI Improved</a>.<br/></q>
+      <q>I'm a freelancer in cologne area.</q>
     </div>
 
 </div>
